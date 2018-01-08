@@ -62,6 +62,7 @@
           return
         }
         this.isSendingFollow = true
+        let _this = this
         followQuestion(this.question.id).then((response) => {
           if (response.status === '200') {
             if (response.result === true) {
@@ -70,10 +71,10 @@
                 type: 'success',
                 duration: 1000
               })
-              this.hasFollow = true
+              _this.hasFollow = true
             }
           }
-          this.isSendingFollow = false
+          _this.isSendingFollow = false
         }).catch((e) => {
           Message({
             message: '关注该用户失败，请稍后重试！',
@@ -87,9 +88,10 @@
           return
         }
         this.isLoadingFollow = true
+        let _this = this
         hasFollowQuestion(this.question.id).then((response) => {
-          this.hasFollow = response.result
-          this.isLoadingFollow = false
+          _this.hasFollow = response.result
+          _this.isLoadingFollow = false
         }).catch((e) => {
           Message({
             message: '加载信息失败，请稍后重试！',
@@ -104,6 +106,7 @@
           return
         }
         this.isSendingFollow = true
+        let _this = this
         unFollowQuestion(this.question.id).then((response) => {
           if (response.status === '200') {
             if (response.result === true) {
@@ -112,12 +115,12 @@
                 type: 'success',
                 duration: 1000
               })
-              this.hasFollow = false
+              _this.hasFollow = false
             }
           }
-          this.isSendingFollow = false
-          if (this.isCurrentUser) {
-            this.$emit('onRemoveQuestion', this.question)
+          _this.isSendingFollow = false
+          if (_this.isCurrentUser) {
+            _this.$emit('onRemoveQuestion', this.question)
           }
         }).catch((e) => {
           Message({

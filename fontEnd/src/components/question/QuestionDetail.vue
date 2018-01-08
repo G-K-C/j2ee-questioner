@@ -2,7 +2,13 @@
   <div id="questionDetail">
     <div id="question-answer">
       <question @onPublisherId="initQuestionPublisherId($event)" @getAnswer="getAnswer()"></question>
-      <div id="answers-panel" v-loading.lock="answerLoading" element-loading-text="拼命加载中">
+      <div v-if="(this.hasLogin&&this.user.roles[0].id==2)||!this.isHidden||(this.isHidden&&this.isCurrentUser)"
+           id="answers-panel"
+           v-loading.lock="answerLoading" element-loading-text="拼命加载中">
+        <div v-if="isHidden&&isCurrentUser">
+          <el-alert title="你的问题已被屏蔽，暂时对其他用户不可见！" type="warning" close-text="知道了" show-icon style="width: 20.8%;margin-bottom: 10px;margin-top: -10px">
+          </el-alert>
+        </div>
         <div id="answer-summary">
           共有 {{ answerNum }} 个回答
           <el-radio-group @change="answerSortChange()" size="small" id="sort-panel" v-model="sortParamLabel">
@@ -10,12 +16,19 @@
             <el-radio-button label="时间"></el-radio-button>
           </el-radio-group>
         </div>
-        <div v-for="answer in answers" class="answer">
-          <answer :isCurrentUser="isCurrentUser" :answer="answer" @onToggleComment="lastScrollTop = -1"></answer>
+        <div v-if="!this.hasLogin||this.user.roles[0].id==1" >
+          <div v-for="answer in answers" class="answer">
+            <answer :isCurrentUser="isCurrentUser" :answer="answer" @onToggleComment="lastScrollTop = -1"></answer>
+          </div>
         </div>
-        <div style="text-align: center" v-if="loadingMore">
-          <i class="el-icon-loading"></i> 玩命加载中，请稍后
+        <div v-else >
+          <div v-for="answer in answers" class="answer">
+            <adminanswer :isCurrentUser="isCurrentUser" :answer="answer" @onToggleComment="lastScrollTop = -1"></adminanswer>
+          </div>
         </div>
+      </div>
+      <div style="text-align: center" v-if="loadingMore">
+        <i class="el-icon-loading"></i> 玩命加载中，请稍后
       </div>
     </div>
   </div>
@@ -42,17 +55,18 @@
 </style>
 <script>
   import Answer from '../answer/Answer.vue'
+  import AdminAnswer from '../answer/AdminAnswer.vue'
   import Question from '../question/QuestionComponent.vue'
-  import { getAnswerNum, getLimitAnswer } from '@/api/question'
+  import { getAnswerNum, getLimitAnswer, getQuestionHiddenStatus } from '@/api/question'
   import { Message } from 'element-ui'
   import $ from 'jquery'
   import { mapGetters } from 'vuex'
 
   export default {
-    components: { 'answer': Answer, 'question': Question },
+    components: { 'answer': Answer, 'question': Question, 'adminanswer': AdminAnswer },
     data () {
       return {
-        answerLoading: true,
+        answerLoading: false,
         answerNum: -1,
         startIndex: 0,
         onceNum: 5,
@@ -63,20 +77,42 @@
         lastScrollTop: 0,
         isSendingFollow: false,
         sortParamLabel: '默认',
-        sortParam: ''
+        sortParam: '',
+        isHidden: true
       }
     },
     mounted: function () {
       this.questionId = this.$route.params.questionId
       this.getAnswer()
+      this.isHidden = this.getQuestionHidden()
     },
     computed: {
-      ...mapGetters(['user']),
+      ...mapGetters(['hasLogin', 'user']),
       isCurrentUser: function () {
         return this.user !== null && this.publisherId === this.user.id
       }
     },
     methods: {
+      getQuestionHidden () {
+        let _this = this
+        getQuestionHiddenStatus(this.questionId).then((response) => {
+          if (response.status === '404') {
+            Message({
+              message: '找不到问题！',
+              type: 'error',
+              duration: 1000
+            })
+          } else if (response.status === '200') {
+            _this.isHidden = response.result
+          }
+        }).catch((e) => {
+          Message({
+            message: '获取答案失败，请稍后重试！',
+            type: 'error',
+            duration: 1000
+          })
+        })
+      },
       scrollMethod () {
         if ($(document).scrollTop() < this.lastScrollTop) {
           return
@@ -110,17 +146,18 @@
         return this.answerNum > 0 && this.startIndex < this.answerNum
       },
       getData () {
+        let _this = this
         getLimitAnswer(this.questionId, this.startIndex, this.onceNum, this.sortParam)
           .then((response) => {
             let answers = response.result
             let length = answers.length
             for (let i = 0; i < length; i++) {
               let answer = answers[i]
-              this.answers.push(answer)
+              _this.answers.push(answer)
             }
-            this.startIndex += length
-            this.answerLoading = false
-            this.changeLoadingStatus()
+            _this.startIndex += length
+            _this.answerLoading = false
+            _this.changeLoadingStatus()
           }).catch((e) => {
             Message({
               message: '获取答案失败，请稍后再试',
@@ -144,7 +181,7 @@
           _this.startIndex = 0
           _this.lastScrollTop = 0
           if (_this.answerNum === 0) {
-            this.answerLoading = false
+            _this.answerLoading = false
           } else {
             _this.getData()
           }

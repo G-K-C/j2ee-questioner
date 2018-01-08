@@ -13,6 +13,30 @@ public class AnswerOverview {
     private Boolean isAccepted = false;
     private Long questionId;
     private String questionTitle;
+    private String questionCourse;
+    private String questionSubject;
+    private Boolean hidden ;
+    private String username; // the username that showed to other users which means it's more friendly and readable
+    private String avatarURL;
+
+
+
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAvatarURL() {
+        return avatarURL;
+    }
+
+    public void setAvatarURL(String avatarURL) {
+        this.avatarURL = avatarURL;
+    }
 
     public Long getId() {
         return id;
@@ -58,6 +82,14 @@ public class AnswerOverview {
         return questionId;
     }
 
+    public Boolean getHidden() {
+        return hidden;
+    }
+
+    public void setHidden(Boolean solved) {
+        hidden = solved;
+    }
+
     public void setQuestionId(Long questionId) {
         this.questionId = questionId;
     }
@@ -69,4 +101,21 @@ public class AnswerOverview {
     public void setQuestionTitle(String questionTitle) {
         this.questionTitle = questionTitle;
     }
+
+    public String getQuestionCourse() {
+        return questionCourse;
+    }
+
+    public void setQuestionCourse(String questionCourse) {
+        this.questionCourse = questionCourse;
+    }
+
+    public String getQuestionSubject() {
+        return questionSubject;
+    }
+
+    public void setQuestionSubject(String questionSubject) {
+        this.questionSubject = questionSubject;
+    }
+
 }

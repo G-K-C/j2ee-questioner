@@ -10,9 +10,12 @@ import com.sitp.questioner.entity.Question;
 import com.sitp.questioner.jwt.JwtUser;
 import com.sitp.questioner.service.abs.QuestionService;
 import com.sitp.questioner.service.abs.RecommendService;
+import com.sitp.questioner.service.abs.QuestionTypeService;
+import com.sitp.questioner.service.abs.QuestionNoticeService;
 import com.sitp.questioner.util.ResJsonTemplate;
 import com.sitp.questioner.viewmodel.QuestionOverview;
 import com.sitp.questioner.viewmodel.QuestionOverviewList;
+import org.aspectj.weaver.patterns.TypePatternQuestions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,10 @@ public class QuestionController {
     private QuestionService questionService;
     @Autowired
     private RecommendService recommendService;
+    @Autowired
+    private QuestionTypeService questionTypeService;
+    @Autowired
+    private QuestionNoticeService questionNoticeService;
 
     @Autowired
     private ExecutorService executorService;
@@ -53,6 +60,22 @@ public class QuestionController {
             return new ResJsonTemplate<>("201","成功发布问题！");
         } else {
             return new ResJsonTemplate<>("400", "发布问题失败！");
+        }
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @RequestMapping(value = "modify/{questionId}",method = RequestMethod.PUT)
+    public ResJsonTemplate modifyQuestion(@PathVariable("questionId") Long questionId,
+                                          @RequestBody Question question){
+        Question modifyQuestion=questionService.getQuestion(questionId);
+        modifyQuestion.setQuestionTitle(question.getQuestionTitle());
+        modifyQuestion.setQuestionContent(question.getQuestionContent());
+        modifyQuestion.setQuestionContentTxt(question.getQuestionContentTxt());
+        modifyQuestion.setQuestionType(questionTypeService.getQuestionType(question.getQuestionType().getId()));
+        if(questionService.saveQuestion(modifyQuestion)){
+            return new ResJsonTemplate<>("201","成功修改问题！");
+        } else {
+            return new ResJsonTemplate<>("400", "修改问题失败！");
         }
     }
 
@@ -81,6 +104,7 @@ public class QuestionController {
         questionOverview.setPublisherId(question.getPublisher().getId());
         questionOverview.setTitle(question.getQuestionTitle());
         questionOverview.setSolved(question.getSolved());
+        questionOverview.setHidden(question.getHidden());
         questionOverview.setPublisherName(question.getPublisher().getUsername());
         questionOverview.setPublisherImgSrc(question.getPublisher().getAvatarURL());
         questionOverview.setViews(question.getViews());
@@ -136,7 +160,24 @@ public class QuestionController {
             questions = questionService.getQuestionTitleLikeByType(typeId,questionTitle,pageSize,currentPage, sortParam);
         }
         QuestionOverviewList questionOverviewList = buildQuestionOverviewList(questionService, questions);
-        return new ResJsonTemplate<>("200", questionOverviewList);
+        return new ResJsonTemplate<>("200",questionOverviewList);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/getHiddenQuestion", method = RequestMethod.GET)
+    public ResJsonTemplate getHiddenQuestion(@RequestParam("pageSize") int pageSize,
+                                              @RequestParam("currentPage") int currentPage,
+                                              @RequestParam(value = "questionTitle",defaultValue = "") String questionTitle,
+                                              @RequestParam(value = "sortParam", defaultValue = "id") String sortParam){
+        Page<Question> questions;
+        if(questionTitle.equals("")){
+            questions = questionService.getHiddenQuestionByPage(pageSize, currentPage, sortParam);
+        }
+        else {
+            questions = questionService.getHiddenQuestionTitleLike(questionTitle,pageSize,currentPage, sortParam);
+        }
+        QuestionOverviewList questionOverviewList = buildQuestionOverviewList(questionService, questions);
+        return new ResJsonTemplate<>("200",questionOverviewList);
     }
 
     @RequestMapping(value = "/{questionId}", method = RequestMethod.GET)
@@ -156,12 +197,23 @@ public class QuestionController {
         return new ResJsonTemplate<>("200", question);
     }
 
-    @PreAuthorize("hasRole('USER')")
     @RequestMapping(value = "/personal/hasFollow", method = RequestMethod.GET)
     public ResJsonTemplate hasFollow(@RequestParam("questionId") Long questionId){
         Long userId = ((JwtUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return new ResJsonTemplate<>("200",
                 questionService.hasFollowQuestion(questionId, userId));
+    }
+
+    @RequestMapping(value = "/getHiddenStatus", method = RequestMethod.GET)
+    public ResJsonTemplate getHidden(@RequestParam("questionId") Long questionId){
+        return new ResJsonTemplate<>("200",
+                questionService.getHidden(questionId));
+    }
+
+    @RequestMapping(value = "/getAnswerStatus", method = RequestMethod.GET)
+    public ResJsonTemplate getAnswerStatus(@RequestParam("questionId") Long questionId){
+        Long userId = ((JwtUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        return new ResJsonTemplate<>("200", questionService.hasAnswerQuestion(questionId, userId));
     }
 
     @PreAuthorize("hasRole('USER')")
@@ -176,6 +228,22 @@ public class QuestionController {
     public ResJsonTemplate unFollowQuestion(@RequestParam("questionId") Long questionId){
         Long userId = ((JwtUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return new ResJsonTemplate<>("200", questionService.userUnFollowQuestion(questionId, userId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/personal/hiddenQuestion", method = RequestMethod.PUT)
+    public ResJsonTemplate hiddenQuestion(@RequestParam("questionId") Long questionId){
+        if(questionService.adminHiddenQuestion(questionId)){
+            questionNoticeService.createNoticeAfterHideQuestion(questionId);
+            return new ResJsonTemplate<>("200",true);
+        }
+        return new ResJsonTemplate<>("400",false);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/personal/unHiddenQuestion", method = RequestMethod.PUT)
+    public ResJsonTemplate unHiddenQuestion(@RequestParam("questionId") Long questionId){
+        return new ResJsonTemplate<>("200", questionService.adminUnhiddenQuestion(questionId));
     }
 
     @RequestMapping(value = "/getFollow/{userId}", method = RequestMethod.GET)

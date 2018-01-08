@@ -33,6 +33,21 @@ public class QuestionTypeController {
         return new ResJsonTemplate<>("200", questionTypeService.hasFollowQuestionType(questionTypeId,userId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/modifyType", method = RequestMethod.PUT)
+    public ResJsonTemplate modifyQuestionType(@RequestParam("questionTypeId") Long questionTypeId,
+                                              @RequestParam("questionCourse") String questionCourse,
+                                              @RequestParam("questionSubject") String questionSubject) {
+        return new ResJsonTemplate<>("200", questionTypeService.modifyQuestionType(questionTypeId,questionCourse,questionSubject));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/addType", method = RequestMethod.POST)
+    public ResJsonTemplate addQuestionType(@RequestParam("questionCourse") String questionCourse,
+                                           @RequestParam("questionSubject") String questionSubject) {
+        return new ResJsonTemplate<>("200", questionTypeService.addQuestionType(questionCourse,questionSubject));
+    }
+
     @RequestMapping(value = "/follow", method = RequestMethod.PUT)
     public ResJsonTemplate followQuestionType(@RequestParam("questionTypeId") Long questionTypeId) {
         Long userId = ((JwtUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();

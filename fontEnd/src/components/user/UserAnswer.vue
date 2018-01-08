@@ -20,6 +20,7 @@
                 {{ answer.questionTitle }}
             </span>
             </router-link>
+            <el-tag v-if="answer.hidden" type="danger" style="font-weight:normal;position: relative;bottom: 2px">被屏蔽</el-tag>
           </el-col>
           <el-col :span="4" style="text-align: right; padding-right: 10px">
             {{ answer.answerDateTime | moment('YYYY年MM月DD日') }}
@@ -98,22 +99,24 @@
       },
       getUserAnswerByDatTime () {
         this.isLoadingData = true
+        let _this = this
         getUserAnswerByDateTime(this.userId, this.currentPage - 1, this.pageSize).then((response) => {
-          this.answers = response.result.content
-          this.total = response.result.total
-          this.isLoadingData = false
+          _this.answers = response.result.content
+          _this.total = response.result.total
+          _this.isLoadingData = false
         }).catch((e) => {
-          this.showError()
+          _this.showError()
         })
       },
       getUserAnswerByThumbsUpCount () {
         this.isLoadingData = true
+        let _this = this
         getUserAnswersByThumbsUpCount(this.userId, this.currentPage - 1, this.pageSize).then((response) => {
-          this.answers = response.result.content
-          this.total = response.result.total
-          this.isLoadingData = false
+          _this.answers = response.result.content
+          _this.total = response.result.total
+          _this.isLoadingData = false
         }).catch((e) => {
-          this.showError()
+          _this.showError()
         })
       },
       showError () {

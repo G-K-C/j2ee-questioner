@@ -21,6 +21,7 @@
                 {{ question.questionTitle }}
               </span>
             </router-link>
+            <el-tag v-if="question.hidden" type="danger" style="font-weight:normal;position: relative;bottom: 2px">被屏蔽</el-tag>
           </el-col>
           <el-col :span="4">
             {{ question.publishDateTime | moment('YYYY年MM月DD日') }}
@@ -96,10 +97,11 @@
       },
       getQuestionByDateTime () {
         this.isLoadingData = true
+        let _this = this
         getUserQuestionByDateTime(this.userId, this.currentPage - 1, this.pageSize).then((response) => {
-          this.questions = response.result.content
-          this.total = response.result.totalElements
-          this.isLoadingData = false
+          _this.questions = response.result.content
+          _this.total = response.result.totalElements
+          _this.isLoadingData = false
         }).catch((e) => {
           Message({
             message: '获取用户问题信息失败，请稍后重试！',
@@ -110,10 +112,11 @@
       },
       getQuestionByViews () {
         this.isLoadingData = true
+        let _this = this
         getUserQuestionByViews(this.userId, this.currentPage - 1, this.pageSize).then((response) => {
-          this.questions = response.result.content
-          this.total = response.result.totalElements
-          this.isLoadingData = false
+          _this.questions = response.result.content
+          _this.total = response.result.totalElements
+          _this.isLoadingData = false
         }).catch((e) => {
           Message({
             message: '获取用户问题信息失败，请稍后重试！',

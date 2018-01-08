@@ -4,24 +4,82 @@
       <ul id="toggle">
         <li>
           <div class="active border">
-            <router-link to="/">所有问题</router-link>
+            <router-link to="/admin/allQuestion">系统管理</router-link>
           </div>
         </li>
-        <li v-for="(value,key) in questionTypeMap">
+        <li>
           <div>
             <a href="javascript:void(0)">
-              {{ key }}
+              屏蔽处理
             </a>
             <span class="the-btn el-icon-plus"></span>
           </div>
-          <ul>
-            <li v-for="type in value">
-              <router-link  :to="{ path : '/questions/questionType/' + type.id }">
-                {{ type.course }}
+          <ul class="ul-class">
+            <li>
+              <router-link style="margin-left: 0px" to="/admin/hiddenQuestion">
+                已屏蔽问题
+              </router-link>
+            </li>
+            <li>
+              <router-link style="margin-left: 0px" to="/admin/hiddenAnswer">
+                已屏蔽回答
               </router-link>
             </li>
           </ul>
         </li>
+
+        <li>
+          <div>
+            <a href="javascript:void(0)">
+              类型管理
+            </a>
+            <span class="the-btn el-icon-plus"></span>
+          </div>
+          <ul class="ul-class">
+            <li>
+              <router-link style="margin-left: 0px" to="/admin/modifyType">
+                修改类型
+              </router-link>
+            </li>
+            <li>
+              <router-link style="margin-left: 0px" to="/admin/addType">
+                添加类型
+              </router-link>
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <div>
+            <a href="javascript:void(0)">
+              查看问题
+            </a>
+            <span class="the-btn el-icon-plus"></span>
+          </div>
+          <ul class="ul-class">
+            <li>
+              <div class="div-left active border">
+                <router-link to="/admin/allQuestion">所有问题</router-link>
+              </div>
+            </li>
+            <li v-for="(value,key) in questionTypeMap">
+              <div class="div-left">
+                <a href="javascript:void(0)">
+                  {{ key }}
+                </a>
+                <span class="the-btn2 el-icon-plus"></span>
+              </div>
+              <ul class="ul-second-class">
+                <li v-for="type in value">
+                  <router-link  :to="{ path : '/admin/questions/questionType/' + type.id }">
+                    {{ type.course }}
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+
       </ul>
     </div>
 
@@ -91,6 +149,10 @@
     display: block;
     border-bottom: 1px solid rgba(0,0,0,0.2);
   }
+  div.div-left {
+
+    margin-left: -70px;
+  }
   span.the-btn{
     float: right;
     font-size: 20px;
@@ -101,8 +163,17 @@
     padding:0;
     color: #fff;
   }
-
-  #toggle ul {
+  span.the-btn2{
+    float: right;
+    font-size: 20px;
+    height: 30px;
+    width: 43px;
+    margin-top: 10px;
+    margin-right: 8px;
+    padding:0;
+    color: #fff;
+  }
+  ul.ul-class {
     list-style: disc;
     display: none;
     color: #fff;
@@ -110,6 +181,12 @@
     -webkit-box-shadow:inset 0 -1px rgba(0,0,0,0);
     -moz-box-shadow:inset 0 -1px rgba(0,0,0,0);
     box-shadow:inset 0 -1px rgba(0,0,0,0);
+
+  }
+  ul.ul-second-class {
+    list-style: disc;
+    display: none;
+    color: #fff;
 
   }
 
@@ -137,6 +214,12 @@
   #toggle ul li {
     margin-left: 68px;
   }
+  #toggle ul li ul li{
+    margin-left: 18px;
+  }
+  #toggle li ul li div a{
+    margin-left: 70px;
+  }
 
   #toggle ul li a:hover{
     background: #1f9d55;
@@ -146,8 +229,8 @@
     background: #1f9d55;
   }
 
-  #toggle ul li a {
-    margin-left: 0;
+  #toggle ul li ul li a {
+    margin-left: 0px;
   }
   #container.display-nav #canvas{
     -webkit-transform:translateX(30%);
@@ -213,6 +296,7 @@
       initEvent () {
         // SLiding codes
         $('#toggle > li > div').click(function () {
+          $('a').removeClass('active')
           if ($(this).next().is(':visible') === false) {
             $('#toggle ul').slideUp()
           }
@@ -220,15 +304,33 @@
           let $currIcon = $(this).find('span.the-btn')
 
           $('span.the-btn').not($currIcon).addClass('el-icon-plus').removeClass('el-icon-minus')
+          $('span.the-btn2').not($currIcon).addClass('el-icon-plus').removeClass('el-icon-minus')
 
           $currIcon.toggleClass('el-icon-plus el-icon-minus')
 
           $(this).next().slideToggle()
-          $('#toggle > li > div').removeClass('active')
+          $('div').removeClass('active')
+          $(this).addClass('active')
+        })
+
+        $('#toggle > li > ul > li > div').click(function () {
+          $('a').removeClass('active')
+          if ($(this).next().is(':visible') === false) {
+            $('#toggle > li > ul > li > ul').slideUp()
+          }
+
+          let $currIcon = $(this).find('span.the-btn2')
+
+          $('span.the-btn2').not($currIcon).addClass('el-icon-plus').removeClass('el-icon-minus')
+
+          $currIcon.toggleClass('el-icon-plus el-icon-minus')
+
+          $(this).next().slideToggle()
+          $('#toggle > li > ul > li > div').removeClass('active')
           $(this).addClass('active')
         })
         $('#toggle ul li a').click(function () {
-          $('#toggle ul li a').removeClass('active')
+          $('a').removeClass('active')
           $(this).addClass('active')
         })
       },
@@ -270,9 +372,9 @@
           if (response.status === '200') {
             _this.questionTypeArray = response.result
             _this.loading = false
-            this.$store.dispatch('init_question_type', this.questionTypeArray)
-            this.$nextTick(function () {
-              this.initEvent()
+            _this.$store.dispatch('init_question_type', this.questionTypeArray)
+            _this.$nextTick(function () {
+              _this.initEvent()
             })
           }
         }).catch((e) => {

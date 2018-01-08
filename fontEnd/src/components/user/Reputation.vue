@@ -84,12 +84,13 @@
     methods: {
       getReputationRecords () {
         this.isLoadingData = true
+        let _this = this
         getUserReputationRecord(this.userId, this.currentPage - 1, this.pageSize).then(response => {
           if (response.status === '200') {
-            this.total = response.result.totalNumber
-            this.reputationRecords = response.result.reputationRecords
+            _this.total = response.result.totalNumber
+            _this.reputationRecords = response.result.reputationRecords
           }
-          this.isLoadingData = false
+          _this.isLoadingData = false
         }).catch((e) => {
           Message({
             message: '获取用户信誉积分失败，请稍后重试！',

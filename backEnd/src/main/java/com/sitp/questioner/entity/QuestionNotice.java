@@ -15,6 +15,9 @@ public class QuestionNotice {
     @Column
     private Boolean hasRead = false;
 
+    @Column
+    private int type = -1;
+
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "question_id")
     private Question question;
@@ -27,6 +30,8 @@ public class QuestionNotice {
     @JoinColumn(name = "account_id")
     private Account account;
 
+
+
     public Long getId() {
         return id;
     }
@@ -37,6 +42,14 @@ public class QuestionNotice {
 
     public Boolean getHasRead() {
         return hasRead;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getType() {
+        return type;
     }
 
     public void setHasRead(Boolean hasRead) {

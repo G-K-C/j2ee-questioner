@@ -3,7 +3,7 @@
     <div id="question-list">
       <div  v-loading='isLoadingQuestion' element-loading-text="玩命加载中">
       <div v-if="isNoData">
-        <span v-if="canFollow">
+        <span v-if="canFollow&&showRecommendQuestion">
           <el-button @click="unFollowQuestionType()"  :disabled="isSendingFollow" size="small" type="info" v-if="hasFollow" icon="star-off">取消关注</el-button>
           <el-button @click="followQuestionType()" :disabled="isSendingFollow" v-else size="small" type="success" icon="star-on">关注</el-button>
         </span>
@@ -13,7 +13,7 @@
         <div style="clear: both"></div>
       </div>
       <div v-else>
-        <span v-if="canFollow">
+        <span v-if="canFollow&&showRecommendQuestion">
         <el-button @click="unFollowQuestionType()"  :disabled="isSendingFollow" size="small" type="info" v-if="hasFollow" icon="star-off">取消关注</el-button>
         <el-button @click="followQuestionType()" :disabled="isSendingFollow" v-else size="small" type="success" icon="star-on">关注</el-button>
         </span>
@@ -219,9 +219,10 @@
           this.hasFollow = false
           return
         }
+        let _this = this
         getFollowStatus(questionType).then((response) => {
-          this.isSendingFollow = false
-          this.hasFollow = response.result
+          _this.isSendingFollow = false
+          _this.hasFollow = response.result
         }).catch((e) => {
           Message({
             message: '获取关注信息失败，请稍后重试！',
@@ -240,10 +241,11 @@
           return
         }
         this.isSendingFollow = true
+        let _this = this
         followQuestionType(questionType).then((response) => {
           if (response.status === '200') {
             if (response.result === true) {
-              this.hasFollow = true
+              _this.hasFollow = true
               Message({
                 message: '关注成功！',
                 type: 'success',
@@ -267,10 +269,11 @@
           return
         }
         this.isSendingFollow = true
+        let _this = this
         unFollowQuestionType(questionType).then((response) => {
           if (response.status === '200') {
             if (response.result === true) {
-              this.hasFollow = false
+              _this.hasFollow = false
               Message({
                 message: '取消关注成功！',
                 type: 'success',
@@ -289,26 +292,28 @@
         })
       },
       loadingRecommendQuestion () {
-        if (!this.hasLogin) {
+        if (!this.hasLogin || this.user.roles[0].id==2) {
           return
         }
         this.isLoadingRecommend = true
+        let _this = this
         getRecommendQuestion().then((response) => {
           if (response.status === '200') {
-            this.recommendQuestionOverviewList = response.result
+            _this.recommendQuestionOverviewList = response.result
           }
-          this.isLoadingRecommend = false
+          _this.isLoadingRecommend = false
         }).catch((e) => {
           Message({
             message: '加载推荐问题失败，请稍后重试！',
             type: 'error',
             duration: 2000
           })
-          this.isLoadingRecommend = false
+          _this.isLoadingRecommend = false
         })
       }
     },
     computed: {
+      ...mapGetters(['hasLogin', 'user']),
       isNoData: function () {
         return !this.isLoadingQuestion && this.questionOverviewList.length === 0
       },
@@ -316,9 +321,9 @@
         return this.$route.params.questionType >= 0
       },
       showRecommendQuestion () {
-        return !(this.$route.params.questionType >= 0) && this.hasLogin
-      },
-      ...mapGetters(['hasLogin'])
+        return this.hasLogin && this.user.roles[0].id==1
+      }
+
     },
     watch: {
       '$route' (to, from) {

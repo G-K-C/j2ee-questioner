@@ -106,12 +106,34 @@ public class AnswerServiceImpl implements AnswerService{
     }
 
     @Override
-    public Page<Answer> getUserAnswerByThumbsUpCount(Long userId, int currentPage, int pageSize) {
+    public Page<Answer> getUserAnswersByThumbsUpCount(Long userId, int currentPage, int pageSize) {
         Pageable pageable = new PageableBuilder().setCurrentPage(currentPage)
                 .setPageSize(pageSize).addSortParam(Sort.Direction.DESC,"thumbsUpCount")
                 .addSortParam(Sort.Direction.ASC, "thumbsDownCount")
                 .buildPage();
         return answerRepository.getUserAnswers(userId, pageable);
+    }
+
+    @Override
+    public Answer getUserAnswerByQuestionId(Long questionId, Long userId) {
+        return answerRepository.getUserAnswerByQuestionId(questionId,userId);
+    }
+
+    @Override
+    public Page<Answer> getHiddenAnswersSortedByDateTime(int currentPage, int pageSize) {
+        Pageable pageable = new PageableBuilder().setCurrentPage(currentPage)
+                .setPageSize(pageSize).setDirection(Sort.Direction.DESC)
+                .setSortParam("id").buildPage();
+        return answerRepository.getHiddenAnswers(pageable);
+    }
+
+    @Override
+    public Page<Answer> getHiddenAnswersSortedByThumbsUpCount(int currentPage, int pageSize) {
+        Pageable pageable = new PageableBuilder().setCurrentPage(currentPage)
+                .setPageSize(pageSize).addSortParam(Sort.Direction.DESC,"thumbsUpCount")
+                .addSortParam(Sort.Direction.ASC, "thumbsDownCount")
+                .buildPage();
+        return answerRepository.getHiddenAnswers(pageable);
     }
 
     @Override

@@ -96,7 +96,7 @@ public class AccountController {
         return new ResJsonTemplate<>("400","you are admin");
     }
 
-    @PreAuthorize("hasRole('USER')")
+
     @RequestMapping(value = "/userOwnInfo",method = RequestMethod.GET)
     public ResJsonTemplate getOwnInfo(){
         JwtUser jwtUser =(JwtUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();

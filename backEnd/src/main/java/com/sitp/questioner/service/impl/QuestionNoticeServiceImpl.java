@@ -8,6 +8,7 @@ import com.sitp.questioner.entity.QuestionNotice;
 import com.sitp.questioner.repository.AccountRepository;
 import com.sitp.questioner.repository.QuestionNoticeRepository;
 import com.sitp.questioner.repository.QuestionRepository;
+import com.sitp.questioner.util.NoticeType;
 import com.sitp.questioner.service.abs.QuestionNoticeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,7 @@ public class QuestionNoticeServiceImpl implements QuestionNoticeService{
             questionNotice.setAnswer(answer);
             questionNotice.setAccount(account);
             questionNotice.setQuestion(question);
+            questionNotice.setType(NoticeType.ANSWER_QUESTION.ordinal());
             questionNoticeRepository.save(questionNotice);
             questionNotice.setQuestion(tempQuestion);
             questionNotice.setAccount(null);
@@ -66,6 +68,65 @@ public class QuestionNoticeServiceImpl implements QuestionNoticeService{
         }));
     }
 
+    @Override
+    public void createNoticeAfterHideQuestion(Long questionId) {
+        Question question = questionRepository.findOne(questionId);
+        Account questionPublisher = accountRepository.findOne(question.getPublisher().getId());
+        List<Account> accounts = questionRepository.getQuestionFollowers(questionId);
+        // first remove the question publisher to avoid send the notification for two times
+        accounts = accounts.stream().filter(account -> !account.getId().equals(questionPublisher.getId())).collect(Collectors.toList());
+        accounts.add(questionPublisher);
+        Question tempQuestion = new Question();
+        tempQuestion.setQuestionTitle(question.getQuestionTitle());
+        tempQuestion.setId(questionId);
+        accounts.forEach((account) -> executorService.submit(()->{
+            QuestionNotice questionNotice = new QuestionNotice();
+            questionNotice.setAccount(account);
+            questionNotice.setQuestion(question);
+            questionNotice.setType(NoticeType.HIDE_QUESTION.ordinal());
+            questionNoticeRepository.save(questionNotice);
+            questionNotice.setQuestion(tempQuestion);
+            questionNotice.setAccount(null);
+            NoticeWebSocket.pushMessageToOneUser(account.getId().toString(), questionNotice);
+        }));
+    }
+
+    @Override
+    public void createNoticeAfterHideAnswer(Answer answer) {
+        Long questionId = answer.getQuestion().getId();
+        Question question = questionRepository.findOne(questionId);
+        // first remove the question publisher to avoid send the notification for two times
+        Question tempQuestion = new Question();
+        tempQuestion.setQuestionTitle(question.getQuestionTitle());
+        tempQuestion.setId(questionId);
+        QuestionNotice questionNotice = new QuestionNotice();
+        questionNotice.setQuestion(question);
+        questionNotice.setAccount(answer.getAccount());
+        questionNotice.setType(NoticeType.HIDE_ANSWER.ordinal());
+        questionNoticeRepository.save(questionNotice);
+        questionNotice.setQuestion(tempQuestion);
+        questionNotice.setAccount(null);
+        NoticeWebSocket.pushMessageToOneUser(answer.getAccount().getId().toString(), questionNotice);
+
+    }
+
+    @Override
+    public void createNoticeAfterAcceptAnswer(Answer answer) {
+        Long questionId = answer.getQuestion().getId();
+        Question question = questionRepository.findOne(questionId);
+        // first remove the question publisher to avoid send the notification for two times
+        Question tempQuestion = new Question();
+        tempQuestion.setQuestionTitle(question.getQuestionTitle());
+        tempQuestion.setId(questionId);
+        QuestionNotice questionNotice = new QuestionNotice();
+        questionNotice.setQuestion(question);
+        questionNotice.setAccount(answer.getAccount());
+        questionNotice.setType(NoticeType.ACCEPT_ANSWER.ordinal());
+        questionNoticeRepository.save(questionNotice);
+        questionNotice.setQuestion(tempQuestion);
+        questionNotice.setAccount(null);
+        NoticeWebSocket.pushMessageToOneUser(answer.getAccount().getId().toString(), questionNotice);
+    }
 
     @Override
     public void markAsHasRead(Long questionNoticeId) {

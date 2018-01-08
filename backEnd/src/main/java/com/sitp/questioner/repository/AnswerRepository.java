@@ -42,6 +42,12 @@ public interface AnswerRepository extends CrudRepository<Answer,Long>{
     @Query("select a from Answer a where a.account.id = ?1")
     Page<Answer> getUserAnswers(Long userId, Pageable pageable);
 
+    @Query("select a from Answer a where a.question.id = ?1 and a.account.id = ?2")
+    Answer getUserAnswerByQuestionId(Long questionId,Long userId);
+
+    @Query("select a from Answer a where a.hidden = true")
+    Page<Answer> getHiddenAnswers(Pageable pageable);
+
     Long countByAccountId(Long accountId);
 
     Answer save(Answer answer);

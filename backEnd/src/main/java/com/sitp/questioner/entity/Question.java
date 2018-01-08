@@ -31,6 +31,9 @@ public class Question {
     private Boolean solved;
 
     @Column
+    private Boolean hidden;
+
+    @Column
     private Long views = 0L;
 
     @JoinColumn(name = "type_id")
@@ -101,6 +104,14 @@ public class Question {
 
     public void setSolved(Boolean solved) {
         this.solved = solved;
+    }
+
+    public Boolean getHidden() {
+        return hidden;
+    }
+
+    public void setHidden(Boolean hidden) {
+        this.hidden = hidden;
     }
 
     public Long getViews() {

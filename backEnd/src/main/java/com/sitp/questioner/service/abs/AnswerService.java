@@ -26,7 +26,13 @@ public interface AnswerService {
 
     Page<Answer> getUserAnswersByDateTime(Long userId, int currentPage, int pageSize);
 
-    Page<Answer> getUserAnswerByThumbsUpCount(Long userId, int currentPage, int pageSize);
+    Page<Answer> getUserAnswersByThumbsUpCount(Long userId, int currentPage, int pageSize);
+
+    Answer getUserAnswerByQuestionId(Long questionId, Long userId);
+
+    Page<Answer> getHiddenAnswersSortedByDateTime(int currentPage, int pageSize);
+
+    Page<Answer> getHiddenAnswersSortedByThumbsUpCount(int currentPage, int pageSize);
 
     Answer getAnswer(Long answerId);
 

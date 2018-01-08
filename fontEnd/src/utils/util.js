@@ -22,6 +22,13 @@ const creditScoreMap = {
   badFeedBack: -1
 }
 
+const noticeType = {
+  ANSWER_QUESTION: 0,
+  HIDE_QUESTION: 1,
+  HIDE_ANSWER: 2,
+  ACCEPT_ANSWER: 3
+}
+
 const creditLabelMap = {
   acceptAnswer: '回答被采纳',
   goodFeedBack: '回答被赞',

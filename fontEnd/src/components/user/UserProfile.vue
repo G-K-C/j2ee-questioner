@@ -52,16 +52,20 @@
         <el-col :span="8">
           <div class="profile__heading--desc">
             <div class="profile__heading--desc-heading">
-              <span class="profile__heading--desc-heading-dot-warp">
-                <span class="profile__heading-dot profile__heading-dot--red"></span>
-                <span class="profile__heading-dot profile__heading-dot--yellow"></span>
-                <span class="profile__heading-dot profile__heading-dot--green"></span>
-              </span>
+              <h4>个人简介
               <span @click="showEditProfilePanel=!showEditProfilePanel" class="editProfile" v-if="isCurrentUser" style="float: right"><i class="fa fa-edit"></i>编辑</span>
+              </h4>
+
+
+
+
+
+
             </div>
             <div class="profile__heading--desc-body">
               <div class="profile__desc">
                 <div v-if="isCurrentUser">
+
                   <div v-if="!showEditProfilePanel" style="white-space: pre">
                     <div v-if="user.profile === null || user.profile === ''">
                       暂时没有个人简历<span style="margin-left: 5px"> <a @click="showEditProfilePanel=true" href="javascript:void 0">去添加?</a></span>
@@ -159,7 +163,7 @@
 <style scoped>
   .profile__heading {
     background-color: #f6f6f6;
-    padding: 40px 0 0 0;
+    padding: 30px 0 25px 0;
   }
   .profile__heading h2 {
     font-weight: 500;
@@ -193,35 +197,20 @@
     margin-left: 10px;
   }
   .profile__heading--desc-heading {
-    height: 32px;
-    background-color: #E3E3E3;
-    padding: 0 12px;
+    height: 36px;
+    background-color: #ddd;
+    margin-left: -140px;
+    margin-right: 150px;
+    padding: 5px 12px;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
   }
-  .profile__heading--desc-heading-dot-warp {
-    height: 32px;
-  }
-  .profile__heading-dot {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: #eee;
-    margin-right: 8px;
-  }
-  .profile__heading-dot--red {
-    background-color: #FF5F57;
-  }
-  .profile__heading-dot--yellow {
-    background-color: #FFBD2E;
-  }
-  .profile__heading-dot--green {
-    background-color: #28CA42;
-  }
+
+
   .profile__heading--desc-body {
     background-color: #EEEEEE;
-    width: 100%;
+    margin-left: -140px;
+    margin-right: 150px;
     font-size: 13px;
     color: #666666;
     overflow: auto;
@@ -244,8 +233,10 @@
     color: #999;
     font-size: 15px;
     font-weight: normal;
+
   }
   .profile__heading--desc-heading .editProfile:hover {
+
     cursor: pointer;
     color: #8A6D3B;
   }
@@ -326,10 +317,11 @@
         this.getQuestionAnswerCount()
       },
       getUserInfo () {
+        let _this = this
         getUser(this.userId).then((response) => {
-          this.userIdIsValidate = response.status === '200'
-          this.isCheckingUser = false
-          this.user = response.result
+          _this.userIdIsValidate = response.status === '200'
+          _this.isCheckingUser = false
+          _this.user = response.result
         }).catch((e) => {
           Message({
             message: '请求用户的信息出错，请稍后再试！',
@@ -339,10 +331,11 @@
         })
       },
       getFollowInfo () {
+        let _this = this
         getFollowInfo(this.userId).then((response) => {
-          this.loadingFollowInfo = false
-          this.followers = response.result.followerCount
-          this.followed = response.result.followedCount
+          _this.loadingFollowInfo = false
+          _this.followers = response.result.followerCount
+          _this.followed = response.result.followedCount
         }).catch((e) => {
           Message({
             message: '获取用户的关注信息失败，请稍后重试！',
@@ -353,9 +346,10 @@
       },
       getQuestionAnswerCount () {
         this.isGettingAnswerCount = true
+        let _this = this
         getUserAnswerCount(this.userId).then((response) => {
-          this.isGettingAnswerCount = false
-          this.answerCount = response.result
+          _this.isGettingAnswerCount = false
+          _this.answerCount = response.result
         }).catch((e) => {
           Message({
             message: '获取信息失败，请稍后重试！',
@@ -365,8 +359,8 @@
         })
         this.isGettingQuestionCount = true
         getUserQuestionCount(this.userId).then((response) => {
-          this.isGettingQuestionCount = false
-          this.questionCount = response.result
+          _this.isGettingQuestionCount = false
+          _this.questionCount = response.result
         }).catch((e) => {
           Message({
             message: '获取信息失败，请稍后重试！',
@@ -444,9 +438,10 @@
           return
         }
         this.isLoadingFollowUserStatus = true
+        let _this = this
         hasFollowUser(this.userId).then((response) => {
-          this.isLoadingFollowUserStatus = false
-          this.hasFollow = response.result
+          _this.isLoadingFollowUserStatus = false
+          _this.hasFollow = response.result
         }).catch((e) => {
           Message({
             message: '加载数据失败，请稍后重试！',
@@ -467,11 +462,12 @@
       },
       saveProfile () {
         this.isSavingProfile = true
+        let _this = this
         saveProfile(this.profile).then((response) => {
           if (response.status === '200') {
-            this.user.profile = response.result.profile
-            this.isSavingProfile = false
-            this.showEditProfilePanel = false
+            _this.user.profile = response.result.profile
+            _this.isSavingProfile = false
+            _this.showEditProfilePanel = false
           }
         }).catch((e) => {
           Message({

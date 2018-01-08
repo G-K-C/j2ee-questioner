@@ -102,10 +102,11 @@
       },
       getUserFollowed () {
         this.follow_user.isLoadingData = true
+        let _this = this
         getFollowedByPage(this.userId, this.follow_user.currentPage - 1, this.follow_user.pageSize).then((response) => {
-          this.follow_user.total = response.result.totalElements
-          this.follow_user.followed = response.result.content
-          this.follow_user.isLoadingData = false
+          _this.follow_user.total = response.result.totalElements
+          _this.follow_user.followed = response.result.content
+          _this.follow_user.isLoadingData = false
         }).catch((e) => {
           Message({
             message: '获取用户关注信息失败，请稍后再试！',
@@ -116,10 +117,11 @@
       },
       getUserFollowCourse () {
         this.follow_course.isLoadingData = true
+        let _this = this
         getUserFollowCourse(this.userId, this.follow_course.currentPage - 1, this.follow_course.pageSize).then((response) => {
-          this.follow_course.total = response.result.totalElements
-          this.follow_course.courses = response.result.content
-          this.follow_course.isLoadingData = false
+          _this.follow_course.total = response.result.totalElements
+          _this.follow_course.courses = response.result.content
+          _this.follow_course.isLoadingData = false
         }).catch((e) => {
           Message({
             message: '获取用户关注的课程信息失败，请稍后再试！',
@@ -130,10 +132,11 @@
       },
       getUserFollowQuestion () {
         this.follow_question.isLoadingData = true
+        let _this = this
         getUserFollowQuestion(this.userId, this.follow_question.currentPage - 1, this.follow_question.pageSize).then((response) => {
-          this.follow_question.isLoadingData = false
-          this.follow_question.total = response.result.totalElements
-          this.follow_question.questions = response.result.content
+          _this.follow_question.isLoadingData = false
+          _this.follow_question.total = response.result.totalElements
+          _this.follow_question.questions = response.result.content
         }).catch((e) => {
           Message({
             message: '获取用户关注的问题失败，请稍后再试！',

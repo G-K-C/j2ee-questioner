@@ -7,14 +7,14 @@
       </router-link>
       发布于 <span>{{ $moment(answer.answerDateTime).fromNow() }}</span>
     </div>
-    <div v-if="!answer.hidden" class="answer-info" v-html="answer.answerContent">
+    <div class="answer-info" v-html="answer.answerContent">
     </div>
-    <div v-if="!answer.hidden" class="feedback">
+    <div class="feedback">
       <el-tooltip effect="dark" content="答案对人有帮助，有参考价值" placement="top">
-        <span @click="giveFeedback(true)" ><i class="fa fa-thumbs-o-up fa-lg"></i> {{ answer.thumbsUpCount }} </span>
+        <span ><i class="fa fa-thumbs-o-up fa-lg"></i> {{ answer.thumbsUpCount }} </span>
       </el-tooltip>
       <el-tooltip effect="dark" content="答案没帮助，是错误的答案，答非所问" placement="top">
-        <span @click="giveFeedback(false)" ><i class="fa fa-thumbs-o-down fa-lg"></i> {{ answer.thumbsDownCount }} </span>
+        <span ><i class="fa fa-thumbs-o-down fa-lg"></i> {{ answer.thumbsDownCount }} </span>
       </el-tooltip>
       <span @click="toggleComment()"  class="comment"><i class="fa  fa-comments-o fa-lg"></i>
             <span v-show="!showComment">{{ answer.commentCount || 0 }}条评论</span>
@@ -30,27 +30,20 @@
           <i class="el-icon-circle-check"></i>
         </el-tooltip>
       </span>
-      <span v-if="showAccept">
-        <el-tooltip effect="dark" content="该回答解决了我的问题，采纳该回答" placement="top">
-          <i @click="acceptAnswer()"  style="color: green" class="fa fa-check"></i>
+      <div v-if="this.hasLogin&&this.user.roles[0].id==2" style="float: right;margin-right: 292px;margin-top: -5px" >
+        <el-tooltip v-if='this.hasHidden' content="取消屏蔽后此回答将可见" placement="top">
+          <el-button :disabled="isSendingHidden" @click.prevent="unHiddenAnswer()"  size="small" icon="warning" type="warning" style="position: relative;right: -50px;top: -15px">
+            取消屏蔽</el-button>
         </el-tooltip>
-      </span>
-      <!-- JiaThis Button BEGIN -->
-      <div v-if="!this.hasLogin||user.roles[0].id == 1" @mouseover="setShareUrl()" class="jiathis_style" style="float: right; margin-right: 65px">
-        <span class="jiathis_txt">分享到：</span>
-        <a class="jiathis_button_cqq"></a>
-        <a class="jiathis_button_weixin"></a>
-        <a class="jiathis_button_qzone"></a>
-        <a class="jiathis_button_tsina"></a>
-        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
-      </div><!-- JiaThis Button END -->
+        <el-tooltip v-else content="屏蔽后此回答将不可见" placement="top">
+          <el-button :disabled="isSendingHidden" @click.prevent="hiddenAnswer()"  size="small" icon="circle-cross" type="danger" style="position: relative;right: -50px;top: -15px">
+            屏蔽回答</el-button>
+        </el-tooltip>
+      </div>
     </div>
-    <div v-if="!answer.hidden" class="commentDetail" v-show="showComment">
+    <div class="commentDetail" v-show="showComment">
       <comment :answerId="answer.id"></comment>
     </div>
-    <el-alert v-if="answer.hidden" title="非常抱歉，该回答已被屏蔽，您暂时无法查看" style="width: 18%;margin-bottom: 12px"
-              type="warning" :closable="false" show-icon>
-    </el-alert>
   </div>
 </template>
 <style scoped>
@@ -83,7 +76,7 @@
 <script>
   import Comment from '../comment/Comment.vue'
   import bus from '../../assets/eventBus'
-  import { giveAnswerFeedback, acceptAnswer } from '@/api/answer'
+  import { hiddenAnswer, unHiddenAnswer } from '@/api/answer'
   import '../../../static/UE/ueditor.parse'
   import { Message } from 'element-ui'
   import { mapGetters } from 'vuex'
@@ -94,7 +87,9 @@
       return {
         isFeedback: false,
         showComment: false,
-        questionId: null
+        questionId: null,
+        isSendingHidden: false,
+        hasHidden: this.answer.hidden
       }
     },
     props: {
@@ -102,19 +97,19 @@
       isCurrentUser: Boolean
     },
     computed: {
-      ...mapGetters(['hasLogin', 'user']),
       showAccept: function () {
         return this.isCurrentUser && !this.answer.accepted
-      }
+      },
+      ...mapGetters(['hasLogin', 'user'])
     },
     mounted: function () {
-      this.questionId = this.$route.params.questionId
-      initShare()
       this.$nextTick(function () {
         window.uParse('.answer', {
           rootPath: '../../static/UE/'
         })
       })
+      this.questionId = this.$route.params.questionId
+      initShare()
     },
     methods: {
       toggleComment () {
@@ -124,70 +119,59 @@
         this.showComment = !this.showComment
         this.$emit('onToggleComment')
       },
-      giveFeedback (isGood) {
-        if (this.isFeedback) {
-          return
-        }
+      hiddenAnswer () {
         if (!this.hasLogin) {
           bus.$emit('requestLogin')
           return
         }
+        const answerId = this.answer.id
+        this.isSendingHidden = true
         let _this = this
-        giveAnswerFeedback(this.answer.id, isGood).then((response) => {
-          if (response.status === '412') {
+        hiddenAnswer(answerId).then((response) => {
+          if (response.result === true) {
+            _this.hasHidden = true
             Message({
-              message: '您已经对该回答做出反馈了！',
-              type: 'info',
-              duration: 1000
-            })
-          } else if (response.status === '200') {
-            Message({
-              message: '反馈成功！',
-              type: 'info',
-              duration: 1000
-            })
-            if (isGood) {
-              _this.answer.thumbsUpCount += 1
-            } else {
-              _this.answer.thumbsDownCount += 1
-            }
-          }
-          _this.isFeedback = false
-        }).catch((e) => {
-          Message({
-            message: '反馈出错，请稍后再试！',
-            type: 'error',
-            duration: 1000
-          })
-          _this.isFeedback = false
-        })
-      },
-      acceptAnswer () {
-        let _this = this
-        acceptAnswer(this.answer.id).then((response) => {
-          if (response.status === '200') {
-            Message({
-              message: '采纳该回答成功！',
+              message: '屏蔽回答成功！',
               type: 'success',
               duration: 1000
             })
-            _this.answer.accepted = true
-          } else {
-            _this.handlerError()
           }
+          _this.isSendingHidden = false
         }).catch((e) => {
-          _this.handlerError()
+          Message({
+            message: '屏蔽回答失败，请稍后再试！',
+            type: 'error',
+            duration: 1000
+          })
+          _this.isSendingHidden = false
         })
       },
-      handlerError () {
-        Message({
-          message: '采纳该回答失败，请稍后重试！',
-          type: 'error',
-          duration: 1000
+      unHiddenAnswer () {
+        if (!this.hasLogin) {
+          bus.$emit('requestLogin')
+          return
+        }
+        const answerId = this.answer.id
+        this.isSendingHidden = true
+        let _this = this
+        unHiddenAnswer(answerId).then((response) => {
+          this.hasHidden = false
+          if (response.result === true) {
+            Message({
+              message: '取消屏蔽成功！',
+              type: 'success',
+              duration: 1000
+            })
+          }
+          _this.isSendingHidden = false
+        }).catch((e) => {
+          Message({
+            message: '取消屏蔽失败，请稍后再试！',
+            type: 'error',
+            duration: 1000
+          })
+          _this.isSendingHidden = false
         })
-      },
-      setShareUrl () {
-        window.jiathis_config.url = window.location.host + '/questionDetail/' + this.questionId + '/' + this.answer.id
       }
     }
   }

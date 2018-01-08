@@ -19,9 +19,38 @@ export function raiseQuestion (questionTitle, questionTypeId, questionContent, q
   })
 }
 
+export function modifyQuestion (questionId, questionTitle, questionTypeId, questionContent, questionContentTxt) {
+  const data = {
+    questionTitle: questionTitle,
+    questionContent: questionContent,
+    questionContentTxt: questionContentTxt,
+    questionType: {
+      id: questionTypeId
+    }
+  }
+  return fetch({
+    url: '/question/modify/' + questionId,
+    method: 'put',
+    data
+  })
+}
+
 export function getAllQuestion (questionTitle, currentPage, pageSize, sortParam) {
   return fetch({
     url: '/question',
+    method: 'get',
+    params: {
+      questionTitle: questionTitle,
+      currentPage: currentPage,
+      pageSize: pageSize,
+      sortParam: sortParam
+    }
+  })
+}
+
+export function getHiddenQuestion (questionTitle, currentPage, pageSize, sortParam) {
+  return fetch({
+    url: '/question/getHiddenQuestion',
     method: 'get',
     params: {
       questionTitle: questionTitle,
@@ -130,9 +159,50 @@ export function followQuestion (questionId) {
   })
 }
 
+export function unHiddenQuestion (questionId) {
+  return fetch({
+    url: '/question/personal/unHiddenQuestion',
+    method: 'put',
+    params: {
+      questionId: questionId
+    }
+  })
+}
+
+export function hiddenQuestion (questionId) {
+  return fetch({
+    url: '/question/personal/hiddenQuestion',
+    method: 'put',
+    params: {
+      questionId: questionId
+    }
+  })
+}
+
+export function getQuestionHiddenStatus (questionId) {
+  return fetch({
+    url: '/question/getHiddenStatus',
+    method: 'get',
+    params: {
+      questionId: questionId
+    }
+  })
+}
+
 export function getUserQuestionCount (userId) {
   return fetch({
     url: '/question/getUserQuestionCount/' + userId,
     methods: 'get'
   })
 }
+
+export function getAnswerStatus (questionId) {
+  return fetch({
+    url: '/question/getAnswerStatus',
+    method: 'get',
+    params: {
+      questionId: questionId
+    }
+  })
+}
+

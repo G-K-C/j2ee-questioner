@@ -2,6 +2,7 @@ package com.sitp.questioner.service.abs;
 
 import com.sitp.questioner.entity.Question;
 import org.springframework.data.domain.Page;
+import com.sitp.questioner.util.NoticeType;
 
 /**
  * Created by qi on 2017/10/11.
@@ -17,6 +18,10 @@ public interface QuestionService {
 
     Page<Question> getQuestionTitleLike(String questionTitle, int pageSize, int currentPage, String sortParam);
 
+    Page<Question> getHiddenQuestionByPage(int pageSize, int currentPage,String sortParam);
+
+    Page<Question> getHiddenQuestionTitleLike(String questionTitle, int pageSize, int currentPage, String sortParam);
+
     Page<Question> getQuestionByPageAndType(Long typeId, int pageSize, int currentPage, String sortParam);
 
     Page<Question> getQuestionTitleLikeByType(Long questionTypeId, String questionTitle,
@@ -26,7 +31,15 @@ public interface QuestionService {
 
     boolean userUnFollowQuestion(Long questionId, Long userId);
 
+    boolean adminHiddenQuestion(Long questionId);
+
+    boolean adminUnhiddenQuestion(Long questionId);
+
     boolean hasFollowQuestion(Long questionId, Long userId);
+
+    boolean hasAnswerQuestion(Long questionId, Long userId);
+
+    boolean getHidden(Long questionId);
 
     Page<Question> getUserFollowQuestions(Long userId, int currentPage, int pageSize);
 

@@ -32,6 +32,9 @@ public class Answer {
     @Column
     private Boolean isAccepted = false;
 
+    @Column
+    private Boolean hidden;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(joinColumns = {
             @JoinColumn(name = "answer_id", referencedColumnName = "id")
@@ -110,6 +113,14 @@ public class Answer {
 
     public void setAccepted(Boolean accepted) {
         isAccepted = accepted;
+    }
+
+    public Boolean getHidden() {
+        return hidden;
+    }
+
+    public void setHidden(Boolean hidden) {
+        this.hidden=hidden;
     }
 
     public Question getQuestion() {

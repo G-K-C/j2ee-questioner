@@ -92,6 +92,19 @@ public class AnswerController {
     }
 
     @PreAuthorize("hasRole('USER')")
+    @RequestMapping(value = "/modify/{answerId}",method = RequestMethod.PUT)
+    public ResJsonTemplate modifyAnswer(@PathVariable("answerId") Long answerId,
+                                        @RequestBody Answer answer){
+        Answer modifyAnswer=answerService.getAnswer(answerId);
+        modifyAnswer.setAnswerContent(answer.getAnswerContent());
+        if(answerService.saveAnswer(modifyAnswer)){
+            return new ResJsonTemplate<>("201","成功发布问题！");
+        } else {
+            return new ResJsonTemplate<>("400", "发布问题失败！");
+        }
+    }
+
+    @PreAuthorize("hasRole('USER')")
     @RequestMapping(value = "/giveFeedback", method = RequestMethod.PUT)
     public ResJsonTemplate giveFeedback(@RequestParam("answerId") Long answerId,
                                         @RequestParam("isGood") boolean isGood){
@@ -138,6 +151,7 @@ public class AnswerController {
         creditRecord.setAnswer(answer);
         creditRecord.setType(CreditEnum.ACCEPT_ANSWER.getType());
         creditRecord.setDatetime(new Date());
+        questionNoticeService.createNoticeAfterAcceptAnswer(answer);
         executorService.submit(() -> accountService.save(account));
         executorService.submit(() -> creditRecordService.save(creditRecord));
         return new ResJsonTemplate<>("200",answerService.acceptAnswer(answerId));
@@ -172,7 +186,7 @@ public class AnswerController {
         return new ResJsonTemplate<>("200", answers);
     }
 
-    private static Map<String, Object> buildAnswerOverviewResult(Page<Answer> answerPage, QuestionService questionService) {
+    private static Map<String, Object> buildAnswerOverviewResult(Page<Answer> answerPage) {
         List<AnswerOverview> answerOverviewList = new ArrayList<>();
         List<Answer> answers = answerPage.getContent();
         for(Answer answer: answers) {
@@ -184,6 +198,11 @@ public class AnswerController {
             answerOverview.setThumbsDownCount(answer.getThumbsDownCount());
             answerOverview.setQuestionId(answer.getQuestion().getId());
             answerOverview.setQuestionTitle(answer.getQuestion().getQuestionTitle());
+            answerOverview.setQuestionCourse(answer.getQuestion().getQuestionType().getCourse());
+            answerOverview.setQuestionSubject(answer.getQuestion().getQuestionType().getSubject());
+            answerOverview.setHidden(answer.getHidden());
+            answerOverview.setUsername(answer.getAccount().getUsername());
+            answerOverview.setAvatarURL(answer.getAccount().getAvatarURL());
             answerOverviewList.add(answerOverview);
         }
         Long total = answerPage.getTotalElements();
@@ -198,20 +217,67 @@ public class AnswerController {
                                                     @RequestParam(value = "currentPage", defaultValue = "0") int currentPage,
                                                     @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
         Page<Answer> answerPage = answerService.getUserAnswersByDateTime(userId, currentPage, pageSize);
-        return new ResJsonTemplate<>("200", buildAnswerOverviewResult(answerPage, questionService));
+        return new ResJsonTemplate<>("200", buildAnswerOverviewResult(answerPage));
     }
 
     @RequestMapping(value = "/getUserAnswersByThumbsUpCount/{userId}", method = RequestMethod.GET)
     public ResJsonTemplate getUserAnswersByThumbsUpCount(@PathVariable("userId") Long userId,
                                                          @RequestParam(value = "currentPage", defaultValue = "0") int currentPage,
                                                          @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        Page<Answer> answerPage = answerService.getUserAnswerByThumbsUpCount(userId, currentPage, pageSize);
-        return new ResJsonTemplate<>("200", buildAnswerOverviewResult(answerPage, questionService));
+        Page<Answer> answerPage = answerService.getUserAnswersByThumbsUpCount(userId, currentPage, pageSize);
+        return new ResJsonTemplate<>("200", buildAnswerOverviewResult(answerPage));
+    }
+
+    @RequestMapping(value = "/getUserAnswerByQuestionId", method = RequestMethod.GET)
+    public ResJsonTemplate getUserAnswerByQuestionId(@RequestParam(value = "questionId") Long questionId) {
+        Long userId = ((JwtUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        return new ResJsonTemplate<>("200", answerService.getUserAnswerByQuestionId(questionId, userId));
     }
 
     @RequestMapping(value = "/getUserAnswerCount/{userId}", method = RequestMethod.GET)
     public ResJsonTemplate getUserAnswerCount(@PathVariable("userId") Long userId) {
         return new ResJsonTemplate<>("200", answerService.getUserAnswerCount(userId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/hiddenAnswer", method = RequestMethod.PUT)
+    public ResJsonTemplate hiddenAnswer(@RequestParam("answerId") Long answerId){
+        Answer answer = answerService.getAnswer(answerId);
+        if(answer == null)
+            return new ResJsonTemplate<>("404","不存在此回答！");
+        answer.setHidden(true);
+        questionNoticeService.createNoticeAfterHideAnswer(answer);
+        executorService.submit(()->answerService.saveAnswer(answer));
+        return new ResJsonTemplate<>("200", true);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/unHiddenAnswer", method = RequestMethod.PUT)
+    public ResJsonTemplate unHiddenAnswer(@RequestParam("answerId") Long answerId){
+        Answer answer = answerService.getAnswer(answerId);
+        if(answer == null)
+            return new ResJsonTemplate<>("404","不存在此回答！");
+        answer.setHidden(false);
+        executorService.submit(()->answerService.saveAnswer(answer));
+        return new ResJsonTemplate<>("200", true);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/hiddenAnswersSortedByDateTime/{userId}", method = RequestMethod.GET)
+    public ResJsonTemplate getHiddenAnswersSortedByDataTime(@PathVariable("userId") Long userId,
+                                                            @RequestParam(value = "currentPage", defaultValue = "0") int currentPage,
+                                                            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        Page<Answer> answerPage = answerService.getHiddenAnswersSortedByDateTime(currentPage, pageSize);
+        return new ResJsonTemplate<>("200", buildAnswerOverviewResult(answerPage));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/hiddenAnswersSortedByThumbsUpCount/{userId}", method = RequestMethod.GET)
+    public ResJsonTemplate getHiddenAnswersSortedByThumbsUpCount(@PathVariable("userId") Long userId,
+                                                                 @RequestParam(value = "currentPage", defaultValue = "0") int currentPage,
+                                                                 @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        Page<Answer> answerPage = answerService.getHiddenAnswersSortedByThumbsUpCount(currentPage, pageSize);
+        return new ResJsonTemplate<>("200", buildAnswerOverviewResult(answerPage));
     }
 
 }

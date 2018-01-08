@@ -57,6 +57,22 @@ public class QuestionServiceImpl implements QuestionService{
     }
 
     @Override
+    public Page<Question> getHiddenQuestionByPage(int pageSize, int currentPage, String sortParam){
+        Pageable pageable = new PageableBuilder().setCurrentPage(currentPage)
+                .setPageSize(pageSize).setSortParam(sortParam)
+                .setDirection(Sort.Direction.DESC).buildPage();
+        return questionRepository.getHiddenQuestionByPage(pageable);
+    }
+
+    @Override
+    public Page<Question> getHiddenQuestionTitleLike(String questionTitle, int pageSize, int currentPage, String sortParam) {
+        Pageable pageable = new PageableBuilder().setCurrentPage(currentPage)
+                .setPageSize(pageSize).setSortParam(sortParam)
+                .setDirection(Sort.Direction.DESC).buildPage();
+        return questionRepository.getHiddenQuestionTitleLike(questionTitle,pageable);
+    }
+
+    @Override
     public Page<Question> getQuestionByPageAndType(Long typeId, int pageSize, int currentPage, String sortParam) {
         Pageable pageable = new PageableBuilder().setCurrentPage(currentPage)
                 .setPageSize(pageSize).setSortParam(sortParam)
@@ -104,8 +120,44 @@ public class QuestionServiceImpl implements QuestionService{
     }
 
     @Override
+    public boolean adminHiddenQuestion(Long questionId) {
+        Question question = questionRepository.findOne(questionId);
+        if(question != null) {
+            if(question.getHidden() == null || !question.getHidden()) {
+                question.setHidden(true);
+                questionRepository.save(question);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean adminUnhiddenQuestion(Long questionId) {
+        Question question = questionRepository.findOne(questionId);
+        if(question != null) {
+            if(question.getHidden() == true) {
+                question.setHidden(false);
+                questionRepository.save(question);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean hasFollowQuestion(Long questionId, Long userId) {
         return questionRepository.hasFollowQuestion(userId,questionId) > 0;
+    }
+
+    @Override
+    public boolean hasAnswerQuestion(Long questionId, Long userId) {
+        return questionRepository.hasAnswerQuestion(userId,questionId) > 0;
+    }
+
+    @Override
+    public boolean getHidden(Long questionId) {
+        return questionRepository.getHidden(questionId) > 0;
     }
 
     @Override

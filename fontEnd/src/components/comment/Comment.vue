@@ -113,7 +113,7 @@
     <div class="myComment">
       <input type="text" placeholder="请写下您的评论" v-model="newComment"
       @keyup.enter="addNewComment"/>
-      <el-button @click.prevent="addNewComment"  size="small" type="danger" icon="edit">发送评论</el-button>
+      <el-button v-if="!this.hasLogin||this.user.roles[0].id==1" @click.prevent="addNewComment"  size="small" type="danger" icon="edit">发送评论</el-button>
     </div>
   </div>
 </template>
@@ -149,6 +149,7 @@
           bus.$emit('requestLogin')
           return
         }
+        let _this = this
         postAnswerComment(this.answerId, this.newComment).then((response) => {
           if (response.status === '201') {
             Message({
@@ -156,7 +157,7 @@
               type: 'success',
               duration: 1000
             })
-            this.commentsList.push({
+            _this.commentsList.push({
               commentContent: this.newComment,
               thumbsUpCount: 0,
               commentDateTime: new Date(),
@@ -166,7 +167,7 @@
                 id: this.user.id
               }
             })
-            this.newComment = ''
+            _this.newComment = ''
           }
         }).catch((e) => {
           Message({
@@ -181,9 +182,10 @@
           return
         }
         this.isLoadingComment = true
+        let _this = this
         getAnswerCommentsOfAnswer(this.answerId).then((response) => {
-          this.commentsList = response.result
-          this.isLoadingComment = false
+          _this.commentsList = response.result
+          _this.isLoadingComment = false
         }).catch((e) => {
           Message({
             message: '获取评论失败，请稍后再试！',

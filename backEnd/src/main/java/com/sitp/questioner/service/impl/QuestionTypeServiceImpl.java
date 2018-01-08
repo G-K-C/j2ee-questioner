@@ -35,6 +35,35 @@ public class QuestionTypeServiceImpl implements QuestionTypeService{
     }
 
     @Override
+    public boolean modifyQuestionType(Long questionTypeId, String questionCourse, String questionSubject){
+        QuestionType modifyQuestionType=questionTypeRepository.findOne(questionTypeId);
+        if(modifyQuestionType!=null) {
+            modifyQuestionType.setCourse(questionCourse);
+            modifyQuestionType.setSubject(questionSubject);
+            questionTypeRepository.save(modifyQuestionType);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean addQuestionType(String questionCourse, String questionSubject){
+        QuestionType addQuestionType=new QuestionType();
+        if(addQuestionType!=null) {
+            addQuestionType.setCourse(questionCourse);
+            addQuestionType.setSubject(questionSubject);
+            questionTypeRepository.save(addQuestionType);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public QuestionType getQuestionType(Long questionTypeId) {
+        return questionTypeRepository.findOne(questionTypeId);
+    }
+
+    @Override
     public boolean hasFollowQuestionType(Long questionTypeId, Long userId) {
         return questionTypeRepository.hasFollowQuestionType(userId, questionTypeId) > 0;
     }

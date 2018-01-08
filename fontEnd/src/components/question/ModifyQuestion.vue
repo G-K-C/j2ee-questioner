@@ -26,7 +26,7 @@
           </div>
         </el-form-item>
       </el-form>
-      <el-button :disabled="isSendingRequest" style="float: right; margin-bottom: 10px"  size="small" type="success"  @click="submitQuestion('questionForm')">发布问题</el-button>
+      <el-button :disabled="isSendingRequest" style="float: right; margin-bottom: 10px"  size="small" type="success"  @click="modifyQuestion('questionForm')">修改问题</el-button>
     </div>
   </div>
 </template>
@@ -45,7 +45,7 @@
 </style>
 <script>
   import UE from '../UE.vue'
-  import { raiseQuestion, getQuestionType } from '@/api/question'
+  import { getQuestionType, getQuestion, modifyQuestion } from '@/api/question'
   import { Message } from 'element-ui'
   import { transformQuestionType2Map } from '@/utils/util'
   export default {
@@ -60,8 +60,12 @@
         },
         questionForm: {
           questionTitle: '',
-          questionType: ''
+          questionType: '',
+          questionTypeId: ''
         },
+        questionContent: '',
+        questionId: 0,
+        editorReady: false,
         rules: {
           questionTitle: [
             { required: true, message: '请输入问题标题', trigger: 'blur' }
@@ -95,52 +99,74 @@
       }
     },
     mounted: function () {
-      let _this = this
+      this.getQuestion()
+      this.setContent()
+      let editor = this.$refs.ue.getUEditor()
+      editor.setContent(this.content)
       getQuestionType().then((response) => {
         if (response.status === '200') {
-          _this.questionTypeArray = response.result
+          this.questionTypeArray = response.result
         }
       })
     },
     methods: {
-      submitQuestion (formName) {
+      getQuestion () {
+        const questionId = this.$route.params.questionId
+        let _this = this
+        getQuestion(questionId).then((response) => {
+          _this.questionForm.questionTitle = response.result.questionTitle
+          _this.questionForm.questionType = response.result.questionType.course
+          _this.questionForm.questionTypeId = response.result.questionType.id
+          _this.questionId = response.result.id
+          _this.questionContent = response.result.questionContent
+          _this.$refs.ue.getUEditor().setContent(_this.questionContent)
+        })
+      },
+      setContent () {
+        let _this = this
+        this.$nextTick(function () {
+          let ueditor = _this.getEditor()
+          ueditor.addListener('ready', function () {
+            ueditor.setContent(_this.answerContent) // 确保UE加载完成后，放入内容。
+            _this.editorReady = true
+          })
+        })
+        if (this.editorReady) {
+          this.$refs.ue.getUEditor().setContent(this.questionContent)
+        }
+      },
+      modifyQuestion (formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
             let editor = this.$refs.ue.getUEditor()
             var _this = this
             this.isSendingRequest = true
             editor.getKfContent(function (content) {
-              raiseQuestion(_this.questionForm.questionTitle, _this.questionForm.questionType, content, editor.getContentTxt())
+              modifyQuestion(_this.questionId, _this.questionForm.questionTitle, _this.questionForm.questionTypeId, content, editor.getContentTxt())
                 .then((response) => {
                   if (response.status === '201') {
                     Message({
-                      message: '问题发布成功, 可在个人中心看到此问题！',
+                      message: '问题修改成功！',
                       type: 'success',
-                      duration: 5 * 1000
+                      duration: 2 * 1000
                     })
-                    _this.resetFields()
                     _this.isSendingRequest = false
                   }
                 }).catch((e) => {
                   Message({
-                    message: '对不起，问题发布失败！',
+                    message: '对不起，问题修改失败！',
                     type: 'error',
-                    duration: 5 * 1000
+                    duration: 2 * 1000
                   })
                   _this.isSendingRequest = false
                   _this.resetFields()
                 })
             })
+            this.$router.push('/questionDetail/' + this.questionId)
           } else {
             return false
           }
         })
-      },
-      resetFields () {
-        let editor = this.$refs.ue
-        editor.clearContent()
-        this.questionForm.questionTitle = ''
-        this.questionForm.questionType = ''
       }
     }
   }

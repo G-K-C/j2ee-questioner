@@ -64,10 +64,11 @@
     methods: {
       getFollowers () {
         this.isLoadingFollowers = true
+        let _this = this
         getFollowersByPage(this.userId, this.currentPage - 1, this.pageSize).then((response) => {
-          this.isLoadingFollowers = false
-          this.total = response.result.totalElements
-          this.followers = response.result.content
+          _this.isLoadingFollowers = false
+          _this.total = response.result.totalElements
+          _this.followers = response.result.content
         }).catch((e) => {
           Message({
             message: '获取粉丝信息失败，请稍后再试！',

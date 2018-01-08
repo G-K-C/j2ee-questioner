@@ -18,6 +18,8 @@ public class QuestionOverview {
     private Long publisherId;
     private String publisherImgSrc;
     private Long views ;
+    private Boolean hidden ;
+
 
     public Long getId() {
         return id;
@@ -75,6 +77,14 @@ public class QuestionOverview {
         isSolved = solved;
     }
 
+    public Boolean getHidden() {
+        return hidden;
+    }
+
+    public void setHidden(Boolean solved) {
+        hidden = solved;
+    }
+
     public String getPublisherName() {
         return publisherName;
     }
@@ -116,6 +126,7 @@ public class QuestionOverview {
                 ", publishDateTime=" + publishDateTime +
                 ", Answers=" + Answers +
                 ", isSolved=" + isSolved +
+                ", hidden=" + hidden +
                 ", publisherName='" + publisherName + '\'' +
                 ", publisherId=" + publisherId +
                 ", publisherImgSrc='" + publisherImgSrc + '\'' +

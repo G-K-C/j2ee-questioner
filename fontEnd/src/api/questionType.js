@@ -32,3 +32,25 @@ export function unFollowQuestionType (questionTypeId) {
     }
   })
 }
+
+export function modifyQuestionType (questionTypeId, questionCourse, questionSubject) {
+  return fetch({
+    url: '/questionType/modifyType',
+    method: 'put',
+    params: {
+      questionTypeId: questionTypeId,
+      questionCourse: questionCourse,
+      questionSubject: questionSubject
+    }
+  })
+}
+export function addQuestionType (questionCourse, questionSubject) {
+  return fetch({
+    url: '/questionType/addType',
+    method: 'post',
+    params: {
+      questionCourse: questionCourse,
+      questionSubject: questionSubject
+    }
+  })
+}

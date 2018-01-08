@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by qi on 2017/10/28.
- */
+
 @RestController
 @RequestMapping(value = "/creditRecord")
 public class CreditRecordController {

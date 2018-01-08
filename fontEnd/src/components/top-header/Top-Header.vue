@@ -11,7 +11,10 @@
         @keyup.enter.native="search" v-model="question" icon="search" :on-icon-click="search" placeholder="请输入搜索内容">
       </el-input>
     </el-menu-item>
-    <el-menu-item @click="postQuestion()" index="2">
+    <el-menu-item v-if="hasLogin&&user.roles[0].id===2" @click="$router.push({ path: `/admin/allQuestion` })" index="2-1">
+        管理
+    </el-menu-item>
+    <el-menu-item v-else @click="postQuestion()" index="2-2">
         去提问
     </el-menu-item>
 
@@ -19,9 +22,12 @@
       <template slot="title"><span><img :src="user.avatarURL" class="top-header-img">
         个人中心</span>
       </template>
-      <el-menu-item @click="$router.push({ path: `/user/${user.id}` })" index="3-1">
+      <el-menu-item v-if="user.roles[0].id===1" @click="$router.push({ path: `/user/${user.id}` })" index="3-1">
           我的主页
        </el-menu-item>
+      <el-menu-item v-else @click="$router.push({ path: `/admin/allQuestion` })" index="3-2">
+          系统管理
+      </el-menu-item>
       <el-menu-item @click="logout" index="3-3">退出登录</el-menu-item>
     </el-submenu>
     <el-submenu  v-if="hasLogin" id="notification" index="4">
@@ -37,7 +43,8 @@
         <el-menu-item v-else @click="clearNotice()" index="4-1" style="color: red; text-align: center">
           <i class="el-icon-delete2"></i><span >清空提醒</span>
         </el-menu-item>
-        <el-menu-item @click="readAnswer(index, notice)" class="notice" v-for="(notice, index) in notices" index="4-2">
+        <span v-for="(notice, index) in notices" :key="notice.id">
+        <el-menu-item v-if="notice.type == noticeType['ANSWER_QUESTION']" @click="readAnswer(index, notice)" class="notice" index="4-2">
           <span  class="user">{{ notice.answer.account.username }}</span>
           回答了
           <el-tooltip :content="notice.question.questionTitle" placement="top">
@@ -49,6 +56,34 @@
             {{ $moment(notice.answer.answerDateTime).fromNow() }}
           </span>
         </el-menu-item>
+        <el-menu-item v-else-if="notice.type == noticeType['HIDE_QUESTION']" class="notice" :key="notice.id" index="4-2">
+          问题
+          <el-tooltip :content="notice.question.questionTitle" placement="top">
+          <span  class="questionTitle">
+            " {{ notice.question.questionTitle }} "
+          </span>
+            已被屏蔽
+          </el-tooltip>
+        </el-menu-item>
+        <el-menu-item v-else-if="notice.type == noticeType['HIDE_ANSWER']" class="notice" :key="notice.id" index="4-2">
+          你在
+          <el-tooltip :content="notice.question.questionTitle" placement="top">
+          <span  class="questionTitle">
+            " {{ notice.question.questionTitle }} "
+          </span>
+            中的回答已被屏蔽
+          </el-tooltip>
+        </el-menu-item>
+          <el-menu-item v-else-if="notice.type == noticeType['']" class="notice" :key="notice.id" index="4-2">
+          你在
+          <el-tooltip :content="notice.question.questionTitle" placement="top">
+          <span  class="questionTitle">
+            " {{ notice.question.questionTitle }} "
+          </span>
+            中的回答被采纳啦
+          </el-tooltip>
+        </el-menu-item>
+        </span>
       </div>
     </el-submenu>
     <el-menu-item @click="$router.push('/login?register=true')" v-if="!hasLogin" id="register-menu-item" index="5">
@@ -100,6 +135,7 @@
   import bus from '../../assets/eventBus.js'
   import store from '@/store'
   import LoginDialog from '../common/LoginDialog.vue'
+  import { noticeType } from '@/utils/util'
   import { mapGetters } from 'vuex'
   import { getUnreadNotice, markNoticeHasRead } from '@/api/questionNotice'
   import { Message } from 'element-ui'
@@ -108,14 +144,14 @@
     data () {
       return {
         question: '',
-        notices: [],
+        notices: null,
         socket: null
       }
     },
     computed: {
       ...mapGetters(['hasLogin', 'user']),
       noticeNum: function () {
-        return this.notices.length
+        return this.notices ? this.notices.length : 0
       },
       avatar: function () {
         return this.user !== null ? this.user.avatarURL : null
@@ -168,8 +204,9 @@
         this.initAfterLogin()
       },
       getUnreadNotice () {
+        let _this = this
         getUnreadNotice().then((response) => {
-          this.notices = response.result
+          _this.notices = response.result
         }).catch((e) => {
           Message({
             message: '不能读取提醒信息，请稍后重试！',

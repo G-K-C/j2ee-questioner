@@ -25,6 +25,7 @@ public class UEditorController{
     public void ueditorIndex(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding( "utf-8" );
         response.setHeader("Content-Type" , "text/html");
+        response.setHeader("Access-Control-Allow-Origin", "*");
         String rootPath = ClassUtils.getDefaultClassLoader().getResource("static").getPath();
         rootPath = URLDecoder.decode(rootPath, "utf-8");
         PrintWriter out = response.getWriter();

@@ -1,9 +1,13 @@
 <template>
   <div id="home-container">
+
+
     <div class="panel panel-default user-profile">
+
       <div class="panel-heading">
         <h3>个人喜好</h3>
       </div>
+
       <div class="panel-body">
         <div class="diagram">
           <div element-loading-text="玩命加载中" v-loading="is_loading" id="user-preference" class="content" style="height: 350px;">
@@ -12,6 +16,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 <style>
@@ -64,6 +69,7 @@
         let course = []
         let data = []
         this.is_loading = true
+        let _this = this
         getUserPreference(userId, 8).then((response) => {
           if (response.status === '200') {
             const userPreference = response.result
@@ -110,7 +116,7 @@
           }
           const myChart = echarts.init(document.getElementById('user-preference'))
           myChart.setOption(option)
-          this.is_loading = false
+          _this.is_loading = false
         }).catch((e) => {
           Message({
             message: '对不起，不能加载用户喜好数据！',
