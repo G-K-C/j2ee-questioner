@@ -120,6 +120,7 @@
                     })
                     _this.resetFields()
                     _this.isSendingRequest = false
+                    _this.$router.push('/')
                   }
                 }).catch((e) => {
                   Message({

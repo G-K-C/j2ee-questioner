@@ -49,7 +49,7 @@
       <comment :answerId="answer.id"></comment>
     </div>
     <el-alert v-if="answer.hidden" title="非常抱歉，该回答已被屏蔽，您暂时无法查看" style="width: 18%;margin-bottom: 12px"
-              type="warning" :closable="false" show-icon>
+              type="info" :closable="false" show-icon>
     </el-alert>
   </div>
 </template>

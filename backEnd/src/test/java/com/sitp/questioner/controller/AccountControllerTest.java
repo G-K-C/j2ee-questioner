@@ -1,6 +1,6 @@
-package com.sitp.questioner.controller;
+package com.questioner.controller;
 
-import com.sitp.questioner.Application;
+import com.questioner.Application;
 import org.json.JSONObject;
 import org.junit.*;
 import org.junit.runner.RunWith;

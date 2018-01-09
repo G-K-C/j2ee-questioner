@@ -7,22 +7,25 @@
       </router-link>
     </div>
     <div class="summary">
-      <h3>的回答<el-tag v-if="answerOverview.hidden" type="danger" style="font-weight:normal;position: relative;bottom: 2px">被屏蔽</el-tag>
-      </h3>
-      <h3>在
-        <router-link :to="{ path : '/questionDetail/' + answerOverview.id }">
+
+      <h3>
+        <router-link :to="{ path : '/questionDetail/' + answerOverview.questionId }">
           {{ answerOverview.questionTitle }}
         </router-link>
       </h3>
       <div class="types">
         {{ answerOverview.questionSubject }} -> {{ answerOverview.questionCourse }}
       </div>
-      <div v-if='isAdmin' class="publish-date">
+      <div style="margin-bottom: -30px">
+      <h3 style="font-weight:normal;color:#38935f;">的回答<el-tag v-if="answerOverview.hidden" type="danger" style="font-weight:normal;position: relative;bottom: 2px;left: 5px">被屏蔽</el-tag>
+      </h3>
+      </div>
+      <div v-if='isAdmin' class="publish-date" style="float: right">
         <el-tooltip v-if='this.itemHoverIndex==1&&this.hasHidden' content="取消屏蔽后用户将能浏览此问题" placement="top">
-          <el-button style="margin-right: 8px" :disabled="isSendingHidden"  @click.prevent="unHiddenQuestion()"  size="mini" icon="warning" type="warning">取消屏蔽</el-button>
+          <el-button style="margin-right: 8px" :disabled="isSendingHidden"  @click.prevent="unHiddenAnswer()"  size="mini" icon="warning" type="warning">取消屏蔽</el-button>
         </el-tooltip>
         <el-tooltip v-else-if='this.itemHoverIndex==1&&!this.hasHidden' content="屏蔽后所有用户将无法浏览此问题" placement="top">
-          <el-button style="margin-right: 8px" :disabled="isSendingHidden"  @click.prevent="hiddenQuestion()"  size="mini" icon="circle-cross" type="danger">屏蔽问题</el-button>
+          <el-button style="margin-right: 8px" :disabled="isSendingHidden"  @click.prevent="hiddenAnswer()"  size="mini" icon="circle-cross" type="danger">屏蔽问题</el-button>
         </el-tooltip>
         发布于 <span style="padding-right: 5px">{{ answerOverview.publishDateTime | moment("YYYY-MM-DD ") }} </span>
       </div>

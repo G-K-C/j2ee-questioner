@@ -66,7 +66,7 @@
 
 </style>
 <script>
-  import { getHiddenAnswersSortedByDateTime, getHiddenAnswersSortedByThumbsUpCount } from '@/api/answer'
+  import { getHiddenAnswerByDateTime, getHiddenAnswerByThumbsUpCount } from '@/api/answer'
   import { Message } from 'element-ui'
   import bus from '../../assets/eventBus.js'
   import store from '@/store'
@@ -86,7 +86,7 @@
         isLoadingAnswer: true,
         answerOverviewList: [],
         pageSizes: [5, 10],
-        userId: '',
+        userId: 1,
         sortParamRadio: '时间最新'
       }
     },
@@ -112,27 +112,29 @@
       fetchHiddenAnswer () {
         this.isLoadingAnswer = true
         if (this.sortParamRadio === '时间最新') {
-          getHiddenAnswersSortedByDateTime(this.user.id.toString(), this.currentPage, this.pageSize).then((response) => {
-            this.handleResponse(response)
+          let _this = this
+          getHiddenAnswerByDateTime(this.currentPage, this.pageSize).then((response) => {
+            if (response.status === '200') {
+              _this.answerOverviewList = response.result.content
+              _this.total = response.result.total
+            }
+            _this.isLoadingAnswer = false
           }).catch((e) => {
-            this.handleError(e)
+            _this.handleError(e)
           })
         }
         else {
-          getHiddenAnswersSortedByThumbsUpCount(this.user.id.toString(), this.currentPage, this.pageSize).then((response) => {
-            this.handleResponse(response)
+          let _this = this
+          getHiddenAnswerByThumbsUpCount(this.currentPage, this.pageSize).then((response) => {
+            if (response.status === '200') {
+              _this.answerOverviewList = response.result.content
+              _this.total = response.result.total
+            }
+            _this.isLoadingAnswer = false
           }).catch((e) => {
-            this.handleError(e)
+            _this.handleError(e)
           })
         }
-      },
-      handleResponse (response) {
-        if (response.status === '200') {
-          this.answerOverviewList = response.result.answerOverviewList
-          this.total = response.result.totalNumber
-          this.currentPage = response.result.currentPage
-        }
-        this.isLoadingAnswer = false
       },
       handleError (e) {
         Message({

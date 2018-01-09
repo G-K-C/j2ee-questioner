@@ -79,9 +79,9 @@ export function modifyAnswer (answerId, answerContent) {
   })
 }
 
-export function getHiddenAnswersSortedByDateTime (userId, currentPage, pageSize) {
+export function getHiddenAnswerByDateTime (currentPage, pageSize) {
   return fetch({
-    url: '/hiddenAnswersSortedByDateTime/' + userId,
+    url: '/answer/hiddenByDateTime',
     method: 'get',
     params: {
       currentPage: currentPage,
@@ -90,9 +90,9 @@ export function getHiddenAnswersSortedByDateTime (userId, currentPage, pageSize)
   })
 }
 
-export function getHiddenAnswersSortedByThumbsUpCount (userId, currentPage, pageSize) {
+export function getHiddenAnswerByThumbsUpCount (currentPage, pageSize) {
   return fetch({
-    url: '/hiddenAnswersSortedByThumbsUpCount/' + userId,
+    url: '/answer/hiddenByThumbsUpCount',
     method: 'get',
     params: {
       currentPage: currentPage,

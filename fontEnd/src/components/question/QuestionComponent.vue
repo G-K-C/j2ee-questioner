@@ -137,7 +137,7 @@
     },
     methods: {
       modifyQuestion () {
-        this.$router.push(this.question.questionId + '/modify')
+        this.$router.push('/questionDetail/' + this.question.questionId + '/modify')
       },
       unFollowQuestion () {
         const questionId = this.question.questionId
